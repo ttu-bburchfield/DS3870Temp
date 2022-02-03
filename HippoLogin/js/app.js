@@ -32,7 +32,11 @@ $(document).on('click','#btnSignIn',function(){
                 }) 
             } else {
                 sessionStorage.setItem('HippoSessionID',objNewSessionResponse.Outcome);
-                window.location.href = 'index.html';
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Login Complete',
+                    html: '<h3>Great Job!</h3>'
+                })
             }
     })
 })
