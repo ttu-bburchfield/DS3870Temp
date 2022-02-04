@@ -6,10 +6,5 @@
     $strUsername = strip_tags($strUsername);
     $strPassword = strip_tags($strPassword);
 
-
-    if(verifyUsernamePassword($strUsername,$strPassword) == 'true'){
-        echo createNewSession($strUsername);
-    } else {
-        echo '{"Outcome":"Login Failed"}';
-    }  
+    echo newUser($strUsername,$strPassword);
 ?>
