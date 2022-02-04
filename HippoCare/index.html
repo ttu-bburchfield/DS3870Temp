@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="css/lib/bootstrap.min.css">
+    <link rel="stylesheet" href="css/lib/pulse.min.css">
+</head>
+<body>
+    <select id="cboTaskCategory" class="form-control">
+
+    </select>
+    <script src="js/lib/jquery-3.6.0.min.js"></script>
+    <script src="js/lib/bootstrap.bundle.min.js"></script>
+    <script src="js/lib/sweetalert.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        if(sessionStorage.getItem('HippoSessionID')){
+            $.getJSON('https://www.swollenhippo.com/DS3870/getTaskCategoriesBySessionID.php?strSessionID=' + sessionStorage.getItem('HippoSessionID'), function(result){
+                $.each(result,function(i,category){
+                    $('#cboTaskCategory').append('<option value="' + category.CategoryID + '">' + category.Description + '</option>');
+                })
+            })
+        } else {
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+</html>
