@@ -45,7 +45,6 @@ $(document).on('click','#btnLogin',function(){
     })
 })
 
-
 $(document).on('click','#btnAddTask',function(){
     let strMySessionID = sessionStorage.getItem('HippoTaskID');
     $.getJSON('https://www.swollenhippo.com/DS3870/Tasks/verifySession.php', {strSessionID: strMySessionID}, function(result){
@@ -88,3 +87,38 @@ $(document).on('click','#btnAddTask',function(){
         }
     })
 })
+
+$(document).on('click','.btnTaskComplete',function(){
+    let strTaskID = $(this).attr('data-taskID');
+    let strSessionID = sessionStorage.getItem('HippoTaskID');
+    $.post('https://www.swollenhippo.com/DS3870/Tasks/markTaskComplete.php',{strSessionID: strSessionID, strTaskID: strTaskID},function(result){
+        console.log(result);
+        fillTasks();
+    })
+})
+
+$(document).on('click','#toggleAdd',function(){
+   $('#divAddNewTask').slideToggle();
+})
+
+$(document).on('click','.btnTaskDelete',function(){ 
+    let strTaskID = $(this).attr('data-taskID');
+    let strSessionID = sessionStorage.getItem('HippoTaskID');
+    $.post('https://www.swollenhippo.com/DS3870/Tasks/deleteTask.php',{strSessionID: strSessionID, strTaskID: strTaskID},function(result){
+        console.log(result);
+        fillTasks();
+    })
+})
+
+function fillTasks(){
+    $.getJSON('https://www.swollenhippo.com/DS3870/Tasks/getTasks.php',{strSessionID:sessionStorage.getItem('HippoTaskID')},function(result){
+        console.log(result);
+        $('#tblTasks tbody').empty();
+        $.each(result,function(i,task){
+            if(task.Status == 'ACTIVE'){
+                let strTableHTML = '<tr><td>' + task.Name + '</td><td>' + task.Location + '</td><td>' + task.DueDate + '</td><td>' + task.Notes + '</td><td><button class="btn btn-success mr-2 btnTaskComplete" data-taskid="' + task.TaskID + '">Complete</button><button class="btn btn-danger ml-2 btnTaskDelete" data-taskid="' + task.TaskID + '">Delete</button></td></tr>';
+                $('#tblTasks tbody').append(strTableHTML);
+            }
+        })
+    })
+}

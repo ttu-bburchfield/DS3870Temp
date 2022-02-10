@@ -9,13 +9,24 @@
     <link rel="stylesheet" href="css/lib/main.css">
 </head>
 <body>
-    <div class="col-6 offset-3 mt-5">
+    <div class="col-6 offset-3 mt-5" style="display: none;" id="divAddNewTask">
         <input id="txtTaskName" type="text" class="form-control" placeholder="Task Name" aria-label="Enter Task Name">
         <input id="txtLocation" type="text" class="form-control" placeholder="Location of Task" aria-label="Enter Location of Task">
         <input id="txtDueDate" type="datetime-local" class="form-control" aria-label="Enter Due Date">
         <textarea id="txtNotes" rows="3" class="form-control" aria-label="Task Notes" placeholder="Enter Your Notes"></textarea>
         <button id="btnAddTask" class="btn btn-success" type="button">Add Task</button>
 
+    </div>
+    <div class="col-10 offset-1 mt-5" id="divTaskTable">
+        <button class="btn btn-primary" id="toggleAdd">Toggle Add</button>
+        <table class="table" id="tblTasks">
+            <thead>
+                <tr><th>Task Name</th><th>Location</th><th>Due Date</th><th>Notes</th><th></th></tr>
+            </thead>
+            <tbody>
+
+            </tbody>
+        </table>
     </div>
     <script src="js/lib/jquery-3.6.0.min.js"></script>
     <script src="js/lib/bootstrap.bundle.min.js"></script>
@@ -34,6 +45,8 @@
                         sessionStorage.removeItem('HippoTaskID');
                         window.location.href = 'login.html';
                     })
+                } else {
+                    fillTasks();
                 }
             })
         } else {
