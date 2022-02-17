@@ -26,7 +26,7 @@
             return '{"Outcome":"User Already Exists"}';
         } else {
             global $conCustodial;
-            $strQuery = "INSERT INTO tblCharacterUsers VALUES (?,?,?,?NOW())";
+            $strQuery = "INSERT INTO tblCharacterUsers VALUES (?,?,?,?,NOW())";
               // Check Connection
             if ($conCustodial->connect_errno) {
                 $blnError = "true";
@@ -101,8 +101,7 @@
 
     function verifySession($strUserSessionID){
         global $conCustodial;
-        updateUserLastUsed($strUserSessionID);
-        $strQuery = "SELECT SessionID FROM tblCharacterSessions WHERE SessionID = ? AND Status = 'ACTIVE' AND StartDateTime >= NOW() - INTERVAL 12 HOUR AND LastUsedDateTime >= NOW() - INTERVAL 2 HOUR";
+        $strQuery = "SELECT SessionID FROM tblCharacterSessions WHERE SessionID = ? AND Status = 'ACTIVE' AND StartDateTime >= NOW() - INTERVAL 12 HOUR";
       	// Check Connection
         if ($conCustodial->connect_errno) {
             $blnError = "true";
@@ -141,8 +140,7 @@
     
     function getCharacters($SessionID){
         global $conCustodial;
-        updateUserLastUsed($SessionID);
-        $strQuery = "SELECT * FROM tblCharacters";
+        $strQuery = "SELECT * FROM tblCharacters WHERE ? IN (SELECT SessionID FROM tblCharacterSessions WHERE Status = 'ACTIVE' AND StartDateTime >= NOW() - INTERVAL 12 HOUR )";
       	// Check Connection
         if ($conCustodial->connect_errno) {
             $blnError = "true";
@@ -178,43 +176,46 @@
 
     function addNewCharacter($Name,$Location,$SuperPower,$Status,$SessionID) {
         global $conCustodial;
-        updateUserLastUsed($SessionID);
-        $strTaskID = guidv4();
-        $strQuery = "INSERT INTO tblTasksTasks VALUES (?,?,?,?,?,(SELECT Email FROM tblTaskSessions WHERE SessionID = ?),'ACTIVE')";
-      	// Check Connection
-        if ($conCustodial->connect_errno) {
-            $blnError = "true";
-            $strErrorMessage = $conCustodial->connect_error;
-            $arrError = array('error' => $strErrorMessage);
-            echo json_encode($arrError);
-            exit();
-        }
-      
-        if ($conCustodial->ping()) {
+        if(verifySession($SessionID) == '{"Outcome":"Valid Session"}'){
+            $strTaskID = guidv4();
+            $strQuery = "INSERT INTO tblCharacters VALUES (?,?,?,?,?)";
+              // Check Connection
+            if ($conCustodial->connect_errno) {
+                $blnError = "true";
+                $strErrorMessage = $conCustodial->connect_error;
+                $arrError = array('error' => $strErrorMessage);
+                echo json_encode($arrError);
+                exit();
+            }
+          
+            if ($conCustodial->ping()) {
+            } else {
+                $blnError = "true";
+                $strErrorMessage = $conCustodial->error;
+                $arrError = array('error' => $strErrorMessage);
+                echo json_encode($arrError);
+            }
+          
+             $statCustodial = $conCustodial->prepare($strQuery);
+    
+             // Bind Parameters
+             $statCustodial->bind_param('sssss', $strTaskID,$Name,$Location,$SuperPower,$Status);
+             if($statCustodial->execute()){
+                return '{"Outcome":"'.$strTaskID.'"}';
+             } else {
+                return '{"Outcome":"Error"}';
+             }
+    
+             $statCustodial->close();
         } else {
-            $blnError = "true";
-            $strErrorMessage = $conCustodial->error;
-            $arrError = array('error' => $strErrorMessage);
-            echo json_encode($arrError);
+            return '{"Outcome":"InValid Session"}';
         }
-      
-		 $statCustodial = $conCustodial->prepare($strQuery);
-
-		 // Bind Parameters
-		 $statCustodial->bind_param('ssssss', $strTaskID,$Name,$Location,$SuperPower,$Status,$SessionID);
-         if($statCustodial->execute()){
-            return '{"Outcome":"'.$strTaskID.'"}';
-         } else {
-            return '{"Outcome":"Error"}';
-         }
-
-         $statCustodial->close();
+        
     }
    
     function getUserDetails($SessionID){
         global $conCustodial;
-        updateUserLastUsed($SessionID);
-        $strQuery = "SELECT Email, FirstName, LastName FROM tblCharacterUsers";
+        $strQuery = "SELECT Email, FirstName, LastName FROM tblCharacterUsers WHERE Email IN (SELECT Email FROM tblCharacterSessions WHERE SessionID = ?)";
       	// Check Connection
         if ($conCustodial->connect_errno) {
             $blnError = "true";
@@ -250,7 +251,7 @@
 
     function checkUserExists($strEmail){
         global $conCustodial;
-        $strQuery = "SELECT Email FROM tblTaskUsers WHERE Email = ?";
+        $strQuery = "SELECT Email FROM tblCharacterUsers WHERE Email = ?";
       	// Check Connection
         if ($conCustodial->connect_errno) {
             $blnError = "true";
@@ -287,42 +288,10 @@
          $statCustodial->close();
     }
 
-    function updateUserLastUsed($SessionID) {
-        global $conCustodial;
-        $strQuery = "UPDATE tblUsers SET LastUsed = NOW() WHERE Email = (SELECT UserID FROM tblCurrentSessions WHERE SessionID = ?)";
-      	// Check Connection
-        if ($conCustodial->connect_errno) {
-            $blnError = "true";
-            $strErrorMessage = $conCustodial->connect_error;
-            $arrError = array('error' => $strErrorMessage);
-            echo json_encode($arrError);
-            exit();
-        }
-      
-        if ($conCustodial->ping()) {
-        } else {
-            $blnError = "true";
-            $strErrorMessage = $conCustodial->error;
-            $arrError = array('error' => $strErrorMessage);
-            echo json_encode($arrError);
-        }
-      
-		 $statCustodial = $conCustodial->prepare($strQuery);
-
-		 // Bind Parameters
-		 $statCustodial->bind_param('s', $SessionID);
-         if($statCustodial->execute()){
-            return '{"Outcome":"User Updated"}';
-         } else {
-            return '{"Outcome":"Error"}';
-         }
-
-         $statCustodial->close();
-    }
 
     function verifyUsernamePassword($strUsername,$strPassword){
         global $conCustodial;
-        $strQuery = "SELECT Email FROM tblTaskUsers WHERE UPPER(Email) = UPPER(?) AND Password = ?";
+        $strQuery = "SELECT Email FROM tblCharacterUsers WHERE UPPER(Email) = UPPER(?) AND Password = ?";
       	// Check Connection
         if ($conCustodial->connect_errno) {
             $blnError = "true";
