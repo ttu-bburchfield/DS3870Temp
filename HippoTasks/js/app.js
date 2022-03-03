@@ -114,11 +114,21 @@ function fillTasks(){
     $.getJSON('https://www.swollenhippo.com/DS3870/Tasks/getTasks.php',{strSessionID:sessionStorage.getItem('HippoTaskID')},function(result){
         console.log(result);
         $('#tblTasks tbody').empty();
+
+
+
+
+
+
         $.each(result,function(i,task){
-            if(task.Status == 'ACTIVE'){
                 let strTableHTML = '<tr><td>' + task.Name + '</td><td>' + task.Location + '</td><td>' + task.DueDate + '</td><td>' + task.Notes + '</td><td><button class="btn btn-success mr-2 btnTaskComplete" data-taskid="' + task.TaskID + '">Complete</button><button class="btn btn-danger ml-2 btnTaskDelete" data-taskid="' + task.TaskID + '">Delete</button></td></tr>';
                 $('#tblTasks tbody').append(strTableHTML);
-            }
+            
         })
+
+
+
+
+        
     })
 }
