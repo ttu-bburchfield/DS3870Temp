@@ -37,15 +37,16 @@ namespace TaskDatabaseIntegration
             log.LogInformation("C# HTTP trigger function processed a request.");
 
             List<User> lstUsers = new List<User>();
-            List<object> lstObjects = new List<object>();
-            DataTable dtUsers = new DataTable("Users");
             string strEmail = req.Query["strEmail"];
-            string strQuery = "SELECT Email, FirstName, LastName, Password from tblUsers";
-            SqliteConnection conTasks = new SqliteConnection(@"Data Source=Data\Tasks.db;");
+            if(strEmail == null)
+            {
+                return new OkObjectResult("Please Enter Email");
+            }
+            string strQuery = "SELECT Email, FirstName, LastName, Password FROM tblUsers";
+            SqliteConnection conTasks = new SqliteConnection(@"Data Source=Data\Tasks.db");
             try
             {
                 conTasks.Open();
-                
                 SqliteCommand comTasks = new SqliteCommand(strQuery, conTasks);
                 SqliteDataReader drTasks = comTasks.ExecuteReader();
                 if (drTasks.HasRows)
@@ -62,14 +63,20 @@ namespace TaskDatabaseIntegration
                             return new OkObjectResult(usrCurrent);
                         }
                     }
+                    conTasks.Close();
+                    return new OkObjectResult("Email Not Found");
+                } else
+                {
+                    conTasks.Close();
+                    return new OkObjectResult("No Users In Database");
                 }
                 
-            }
-            catch(Exception ex)
+            } catch(Exception ex)
             {
+                conTasks.Close();
                 log.LogInformation("Error: " + ex.Message);
+                return new OkObjectResult(ex.Message.ToString());
             }
-            return new OkObjectResult("Test Inside");
         }
     }
 }
