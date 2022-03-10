@@ -82,19 +82,19 @@ namespace TaskDatabaseIntegration
                     return new OkObjectResult(ex.Message.ToString());
                 }
             }
+            
             if(req.Method == HttpMethods.Post)
             {
-                log.LogInformation("C# HTTP trigger function processed a request from POST.");
-                //var content = await new StreamReader(req.Body).ReadToEndAsync();
-                //User usrNew = JsonConvert.DeserializeObject<User>(content);
+                log.LogInformation("Inside the POST IF");
 
                 string strEmail = req.Query["strEmail"];
                 string strPassword = req.Query["strPassword"];
                 string strFirstName = req.Query["strFirstName"];
                 string strLastName = req.Query["strLastName"];
-                if (strEmail == null || strPassword == null || strFirstName == null || strLastName == null)
+
+                if(strEmail == null || strPassword == null || strFirstName == null || strLastName == null)
                 {
-                    return new OkObjectResult("You must provide an Email, Password, FirstName, and LastName to create a user");
+                    return new OkObjectResult("You must provide an Email, Password, First Name, and Last Name to create a user");
                 }
                 string strQuery = "INSERT INTO tblUsers VALUES($email, $password, $firstname, $lastname)";
                 SqliteConnection conTasks = new SqliteConnection(@"Data Source=Data\Tasks.db");
@@ -102,40 +102,44 @@ namespace TaskDatabaseIntegration
                 {
                     conTasks.Open();
                     SqliteCommand comTasks = new SqliteCommand(strQuery, conTasks);
-                    SqliteParameter parEmail = new SqliteParameter("$email",SqliteType.Text);
+                    // Begin of parameters for prepared statement
+                    SqliteParameter parEmail = new SqliteParameter("$email", SqliteType.Text);
                     parEmail.Value = strEmail;
                     comTasks.Parameters.Add(parEmail);
+
                     SqliteParameter parPassword = new SqliteParameter("$password", SqliteType.Text);
                     parPassword.Value = strPassword;
                     comTasks.Parameters.Add(parPassword);
+
                     SqliteParameter parFirstName = new SqliteParameter("$firstname", SqliteType.Text);
                     parFirstName.Value = strFirstName;
                     comTasks.Parameters.Add(parFirstName);
+
                     SqliteParameter parLastName = new SqliteParameter("$lastname", SqliteType.Text);
                     parLastName.Value = strLastName;
                     comTasks.Parameters.Add(parLastName);
+                    // End of parameters for prepared statement
 
                     int intRows = comTasks.ExecuteNonQuery();
-                    if (intRows > 0)
+                    if(intRows > 0)
                     {
                         conTasks.Close();
                         return new OkObjectResult("User Added");
-                    }
-                    else
+                    } else
                     {
                         conTasks.Close();
-                        return new OkObjectResult("Error: User was not added");
+                        return new OkObjectResult("Error:  User Not Added");
                     }
 
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
+                    log.LogInformation("Error: " + ex.ToString());
                     conTasks.Close();
-                    log.LogInformation("Error: " + ex.Message);
-                    return new OkObjectResult(ex.Message.ToString());
+                    return new OkObjectResult(ex.ToString());
                 }
             }
-            return new OkObjectResult("Error:  You must call a GET or POST Only");
+
+            return new OkObjectResult("Error:  You must send a GET or POST request");
         }
     }
 }
