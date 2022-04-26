@@ -123,6 +123,7 @@ namespace TaskDatabaseIntegration
                     int intRows = comTasks.ExecuteNonQuery();
                     if(intRows > 0)
                     {
+                        conTasks.
                         conTasks.Close();
                         return new OkObjectResult("User Added");
                     } else
